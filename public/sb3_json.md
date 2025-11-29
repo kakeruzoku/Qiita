@@ -12,6 +12,18 @@ ignorePublish: false
 
 この記事ではScratchの`.sb3` ファイルの中にあるjsonファイルについてまとめていく。
 
+:::note warn
+この記事はあくまで `.sb3` ファイルについての記事である。実行時の詳細な挙動については他の記事を当たってほしい。
+:::
+
+:::note warn
+`[?]` の部分は推測で書いている部分なのであまり参考にしないほうがいいかもしれない。
+(だからといって他がすべて正しいという保証があるわけではないよ！)
+
+もしその部分についてよく知っているのだったら是非編集リクエストを送ってほしい。
+:::
+
+
 ## ファイル自体の構造
 
 `.sb3`の構造はzipファイルである。拡張子をzipに書き換えて解凍すると以下のようなファイル構造となる。
@@ -32,7 +44,44 @@ ignorePublish: false
 
 ここからは `project.json` についてまとめていく。
 
-## project.json
+## project.json全体
+
+### 最初に抑えておくべきこと
+
+まずこの記事を読んでいく前に、全体で使われているシステムについて抑えておこう。
+
+#### IDについて
+
+project.jsonでは様々なオブジェクトの識別子として20文字のランダムな文字列を使用している。
+
+具体的には、文字列 ```!#%()*+,-./:;=?@[]^_`{|}~ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789``` の中から文字列を1つ無作為に選ぶことを20回繰り返し、結合した文字列のことである。
+
+例:
+
+```
+Yc:^8;:\gxg(1n+~F2O7
+{r**.@qWvV2D,xax1I33
+:3%_htMV2wdxwJkF_ln_
+I2nvOlA];Z&d%{@O37v)
+\h3J|Cae,}VIeBfOfk:F
+```
+
+Pythonでの実装例:
+```py
+import random,string
+ID_CHARS = string.ascii_letters + string.digits + string.punctuation
+
+def generate_id() -> str:
+    return "".join(random.choices(ID_CHARS, k=20))
+```
+
+該当のソースコード:
+
+https://github.com/scratchfoundation/scratch-editor/blob/develop/packages/scratch-vm/src/util/uid.js
+
+今後これによって生成されたIDを `UID` と呼ぶ。
+
+### ルート要素
 
 一番外側はこんな感じ。
 
@@ -53,11 +102,21 @@ ignorePublish: false
 
 ### meta
 
-プロジェクトのメタデータ
+プロジェクトのメタデータ。
+
+この部分は最後に保存した時に使用していたエディターの情報が使われる。
+
+```json
+"meta": {
+    "agent": "...",
+    "semver": "...",
+    "vm": "..."
+}
+```
 
 - **agent**
-  - エディターのユーザーエージェント
-- **sember**
+  - エディターのユーザーエージェント。オフラインエディターだとChrome? `[?]`
+- **semver**
   - 常に `3.0.0`。
 - **vm**
-  - エディタのバージョンを表す。
+  - エディタのバージョンを表す。[package.json](https://github.com/scratchfoundation/scratch-editor/blob/develop/package.json )の`version`の部分。
